@@ -1,12 +1,11 @@
 ﻿using blockChainWebApp.API.Models;
 using Newtonsoft.Json;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Web.Http;
+using blockChainWebApp.API.BLL;
 using blockChainWebApp.API.DAL;
 using blockChainWebApp.API.BLL.HelpClasses;
 
@@ -27,11 +26,15 @@ namespace blockChainWebApp.API.Controllers
                 if (block == null)
                     Request.CreateErrorResponse(resultCode, "Could not read data from body");
 
-                //TODO: перенести логику проверки хеша в BLL
-                if (StringUtil.IsBlockValid(block))
+                var isValidTransaction = block != null && KeyServices.VerifySignature(block.ReceiptPositions, block.PublicKey, block.Signature);
+                if (isValidTransaction)
                 {
-                    _blockRepository.AddBlock(block);
-                    resultCode = HttpStatusCode.OK;
+                    //TODO: перенести логику проверки хеша в BLL
+                    if (StringUtil.IsBlockValid(block))
+                    {
+                        _blockRepository.AddBlock(block);
+                        resultCode = HttpStatusCode.OK;
+                    }
                 }
 
                 var response = new HttpResponseMessage
@@ -64,7 +67,7 @@ namespace blockChainWebApp.API.Controllers
                 var result = _blockRepository.GetAllBlocks();
                 resultCode = HttpStatusCode.OK;
 
-                var response = new HttpResponseMessage
+                var response = new HttpResponseMessage  
                 {
                     StatusCode = resultCode,
                     Content = new StringContent(JsonConvert.SerializeObject(result), Encoding.UTF8,

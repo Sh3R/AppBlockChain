@@ -8,5 +8,6 @@
         public long Timestamp { get; set; }
         public string PreviousHash { get; set; }    
         public string Signature { get; set; }
+        public string PublicKey { get; set; }
     }
 }
